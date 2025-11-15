@@ -1,5 +1,5 @@
 const express = require('express');
-const { registerUser, loginUser, getAllUsers } = require("../controllers/authController");
+const { registerUser, loginUser, getProfile, getAllUsers, forgotPassword, resetPassword } = require("../controllers/authController");
 const authMiddleware = require("../middleware/authMiddleware");
 const checkPermission = require("../middleware/checkPermission");
 
@@ -9,9 +9,9 @@ router.post("/register", registerUser);
 router.post("/login", loginUser);
 
 //only logged-in users can access this
-router.get("/profile", authMiddleware, (req, res) => {
-    res.json({ message: "Profile data", user: req.user });
-});
+router.get("/profile", authMiddleware, getProfile);
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password/:token", resetPassword);
 
 router.get("/", authMiddleware, checkPermission("view"), getAllUsers);
 

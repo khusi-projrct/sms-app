@@ -2,14 +2,14 @@ const Permission = require("../models/permission");
 
 const createPermission = async (req, res) => {
     try {
-        const { name, model } = req.body;
+        const { tag, actions } = req.body;
 
-        const existingPermission = await Permission.findOne({ name, model });
+        const existingPermission = await Permission.findOne({ tag, actions });
         if (existingPermission) {
             return res.status(400).json({ message: "Permission already exists for this model" });
         }
 
-        const permission = new Permission({ name, model });
+        const permission = new Permission({ tag, actions });
         await permission.save();
 
         res.status(201).json({ message: "Pemission created Successfully", permission });

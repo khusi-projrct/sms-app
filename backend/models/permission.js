@@ -1,18 +1,18 @@
 const mongoose = require("mongoose");
 
 const permissionSchema = new mongoose.Schema({
-    model: {
+    tag: {
         type: String,
         required: true
     },
-    name: {
+    actions: {
         type: String,
         required: true,
     }
 });
 
 // Create a compound unique index
-permissionSchema.index({ model: 1, name: 1 }, { unique: true });
+permissionSchema.index({ tag: 1, actions: 1 }, { unique: true });
 
 const Permission = mongoose.model("Permission", permissionSchema);
 

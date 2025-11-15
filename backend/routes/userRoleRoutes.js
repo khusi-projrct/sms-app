@@ -1,8 +1,9 @@
 const express = require("express");
-const router = express.Router();
 const { assignRoleToUser, getRoleByUser } = require("../controllers/userRoleController");
+const authMiddleware = require("../middleware/authMiddleware");
+const router = express.Router();
 
-router.post("/", assignRoleToUser);
-router.get("/:userId", getRoleByUser);
+router.post("/", authMiddleware, assignRoleToUser);
+router.get("/:userId", authMiddleware, getRoleByUser);
 
 module.exports = router;

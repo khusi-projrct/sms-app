@@ -26,6 +26,31 @@ app.use("/api/role-permissions", rolePermissionRoutes);
 const userRoleRoutes = require("./routes/userRoleRoutes"); //import userRoleRoutes
 app.use("/api/user-roles", userRoleRoutes);
 
+const schoolRoutes = require("./routes/schoolRoutes"); //import schoolRoutes
+app.use("/api/schools", schoolRoutes);
+
+const subscriptionPlanRoutes = require("./routes/subscriptionPlanRoutes"); //import subscriptionPlanRoutes
+app.use("/api/subscription-plans", subscriptionPlanRoutes);
+
+const subscriptionRoutes = require("./routes/subscriptionRoutes"); //import subscriptionRoutes
+app.use("/api/subscriptions", subscriptionRoutes);
+
+const paymentRoutes = require("./routes/paymentRoutes"); //import paymentRoutes
+app.use("/api/payments", paymentRoutes);
+
+const classRoutes = require("./routes/classRoutes"); //import classRoutes
+app.use("/api/classes", classRoutes);
+
+const subjectRoutes = require("./routes/subjectRoutes"); //import subjectRoutes
+app.use("/api/subjects", subjectRoutes);
+
+const attendanceRoutes = require("./routes/attendanceRoutes"); //import attendanceRoutes
+app.use("/api/attendance", attendanceRoutes);
+
+const errorHandler = require("./middleware/errorHandler");
+app.use(errorHandler);
+
+
 //Default Routes
 app.get("/", (req, res) => {
     res.send("School Management System API is runnig...");
