@@ -2,6 +2,7 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
+const path = require("path");
 const connectDB = require("./config/db");
 
 dotenv.config();
@@ -13,6 +14,7 @@ app.use(cors());  //Allow frontend requsts
 
 const authRoutes = require("./routes/authRoutes"); //import routes (user)
 app.use("/api/auth", authRoutes);
+app.use("/uploads", express.static(path.join(__dirname, "uploads"))); //serve uploaded files
 
 const roleRoutes = require("./routes/roleRoutes"); //import roleRoutes
 app.use("/api/roles", roleRoutes);
@@ -49,7 +51,6 @@ app.use("/api/attendance", attendanceRoutes);
 
 const errorHandler = require("./middleware/errorHandler");
 app.use(errorHandler);
-
 
 //Default Routes
 app.get("/", (req, res) => {

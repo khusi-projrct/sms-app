@@ -108,6 +108,7 @@ const getProfile = async (req, res) => {
                 username: user.username,
                 contactNumber: user.contactNumber,
                 email: user.email,
+                avatarUrl: user.avatarUrl,
                 roles,
                 permissions
             }
@@ -190,6 +191,47 @@ const resetPassword = async (req, res) => {
     await user.save();
 
     res.json({ message: "Password has been reset successfully" });
-}
+};
+// image upload 
+const uploadAvatar = async (req, res) => {
+    try{
+        if(!req.file) {
+            return res.status(400).json({message: "No file uploaded"});
+        }
+        const userId = req.user.id;
+        const avatarUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
+        await User.findByIdAndUpdate(userId, {avatarUrl}, { new: true });
+        res.json({message: "Avatar uploaded successfully", avatarUrl});
+    } catch (error) {
+        res.status(500).json({message: error.message});
+    }
+};
 
-module.exports = { registerUser, loginUser, getProfile, getAllUsers, forgotPassword, resetPassword };
+const updateProfile = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        const { username, contactNumber, email, avatarUrl } = req.body;
+
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            {
+                username,
+                contactNumber,
+                email,
+                ...(avatarUrl && { avatarUrl })
+            },
+            { new: true }
+        ).select("-password");
+
+        res.json({
+            message: "Profile updated successfully",
+            user: updatedUser
+        });
+
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+module.exports = { registerUser, loginUser, getProfile, getAllUsers, forgotPassword, resetPassword, uploadAvatar, updateProfile };

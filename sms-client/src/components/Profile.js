@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getProfile } from '../api';
 
@@ -15,7 +15,13 @@ export default function Profile() {
     const [editableProfile, setEditableProfile] = useState({});
     const [selectedRole, setSelectedRole] = useState('');
     const [isEditMode, setIsEditMode] = useState(false);
+    const [avatarPreview, setAvatarPreview] = useState(null);
+    const [selectedAvatarFile, setSelectedAvatarFile] = useState(null);
+    const [originalAvatar, setOriginalAvatar] = useState(null);
+
     const navigate = useNavigate();
+
+    const fileInputRef = useRef(null);
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -29,6 +35,9 @@ export default function Profile() {
                 const res = await getProfile(token);
                 setProfile(res.data.user);
                 setEditableProfile(res.data.user);
+
+                setAvatarPreview(null);
+                setOriginalAvatar(res.data.user.avatarUrl || null);
 
                 if (res.data.user.roles && res.data.user.roles.length > 0) {
                     setSelectedRole(res.data.user.roles[0]);
@@ -56,11 +65,45 @@ export default function Profile() {
         setEditableProfile(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleSave = () => {
-        // TODO: Add API call to update profile here
-        setProfile(editableProfile);
-        setIsEditMode(false);
+    const handleSave = async () => {
+        try {
+            const token = localStorage.getItem("token");
+
+            // 1️⃣ Upload avatar if changed
+            if (selectedAvatarFile) {
+                const formData = new FormData();
+                formData.append("avatar", selectedAvatarFile);
+
+                const res = await fetch(
+                    "http://localhost:5000/api/auth/upload-avatar",
+                    {
+                        method: "POST",
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                        body: formData,
+                    }
+                );
+
+                const data = await res.json();
+
+                if (!res.ok) throw new Error(data.message);
+
+                // update avatar everywhere
+                setAvatarPreview(data.avatarUrl);
+                setOriginalAvatar(data.avatarUrl);
+                setEditableProfile(prev => ({ ...prev, avatarUrl: data.avatarUrl }));
+            }
+
+            // 2️⃣ Save profile locally
+            setProfile(editableProfile);
+            setIsEditMode(false);
+
+        } catch (error) {
+            alert(error.message || "Avatar upload failed");
+        }
     };
+
 
     const handleCancel = () => {
         setEditableProfile(profile); // revert changes
@@ -131,22 +174,72 @@ export default function Profile() {
                                                         <div className="media mb-2">
                                                             <a className="mr-2" href="#">
                                                                 <img
-                                                                    src="../../../app-assets/images/portrait/small/avatar-s-26.png"
+                                                                    src={
+                                                                        avatarPreview
+                                                                            ? avatarPreview
+                                                                            : originalAvatar
+                                                                                ? originalAvatar
+                                                                                : "../../../app-assets/images/portrait/small/avatar-s-26.png"
+                                                                    }
                                                                     alt="users avatar"
                                                                     className="users-avatar-shadow rounded-circle"
                                                                     height="64"
                                                                     width="64"
                                                                 />
+                                                                <input
+                                                                    type="file"
+                                                                    accept="image/*"
+                                                                    style={{ display: "none" }}
+                                                                    id="avatarInput"
+                                                                    ref={fileInputRef}
+                                                                    onChange={(e) => {
+                                                                        const file = e.target.files[0];
+                                                                        if (!file) return;
+
+                                                                        setAvatarPreview((prevPreview) => {
+                                                                            if (prevPreview) {
+                                                                                URL.revokeObjectURL(prevPreview);
+                                                                            }
+                                                                            return URL.createObjectURL(file);
+                                                                        });
+
+                                                                        setSelectedAvatarFile(file);
+                                                                    }}
+                                                                />
+
+
                                                             </a>
                                                             <div className="media-body">
                                                                 <h4 className="media-heading">Avatar</h4>
                                                                 <div className="col-12 px-0 d-flex">
-                                                                    <a href="#" className="btn btn-sm btn-primary mr-25">
+                                                                    <button
+                                                                        type="button"
+                                                                        className="btn btn-sm btn-primary mr-25"
+                                                                        onClick={() => document.getElementById("avatarInput").click()}
+                                                                    >
                                                                         Change
-                                                                    </a>
-                                                                    <a href="#" className="btn btn-sm btn-secondary">
+                                                                    </button>
+                                                                    <button
+                                                                        type="button"
+                                                                        className="btn btn-sm btn-secondary"
+                                                                        onClick={() => {
+                                                                            setAvatarPreview((prevPreview) => {
+                                                                                if (prevPreview) {
+                                                                                    URL.revokeObjectURL(prevPreview);
+                                                                                }
+                                                                                return null;
+                                                                            });
+
+                                                                            setSelectedAvatarFile(null);
+                                                                            const input = document.getElementById("avatarInput");
+                                                                            if (input) {
+                                                                                input.value = "";
+                                                                            }
+                                                                        }}
+                                                                    >
                                                                         Reset
-                                                                    </a>
+                                                                    </button>
+
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -276,10 +369,23 @@ export default function Profile() {
                                                                 </div>
 
                                                                 <div className="col-12 d-flex flex-sm-row flex-column justify-content-end mt-1">
-                                                                    <button type="submit" className="btn btn-primary glow mb-1 mb-sm-0 mr-0 mr-sm-1">
+                                                                    <button
+                                                                        type="button"
+                                                                        className="btn btn-primary glow"
+                                                                        onClick={handleSave}
+                                                                    >
                                                                         Save changes
                                                                     </button>
-                                                                    <button type="reset" className="btn btn-light">
+                                                                    <button
+                                                                        type="button"
+                                                                        className="btn btn-light"
+                                                                        onClick={() => {
+                                                                            setEditableProfile(profile);
+                                                                            setAvatarPreview(originalAvatar);
+                                                                            setSelectedAvatarFile(null);
+                                                                            setIsEditMode(false);
+                                                                        }}
+                                                                    >
                                                                         Cancel
                                                                     </button>
                                                                 </div>
@@ -466,12 +572,16 @@ export default function Profile() {
                                         <div className="media mb-2">
                                             <a className="mr-1" href="#">
                                                 <img
-                                                    src="../../../app-assets/images/portrait/small/avatar-s-26.png"
+                                                    src={
+                                                        profile.avatarUrl ||
+                                                        "../../../app-assets/images/portrait/small/avatar-s-26.png"
+                                                    }
                                                     alt="users view avatar"
                                                     className="users-avatar-shadow rounded-circle"
                                                     height="64"
                                                     width="64"
                                                 />
+
                                             </a>
                                             <div className="media-body pt-25">
                                                 <h4 className="media-heading">

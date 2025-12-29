@@ -6,6 +6,8 @@ sms-client/node_modules/
 # Environment variables
 backend/.env
 
+backend/uploads/
+
 # Logs
 *.log
 npm-debug.log*
