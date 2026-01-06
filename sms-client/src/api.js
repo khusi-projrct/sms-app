@@ -8,6 +8,13 @@ export const getProfile = (token) => axios.get(`${API_BASE}/auth/profile`,
     { headers: { Authorization: `Bearer ${token}` } }
 );
 
+export const updateProfile = (data, token) =>
+  axios.put(
+    `${API_BASE}/auth/update-profile`,
+    data,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+
 const authHeaders = (token) => ({
     headers: { Authorization: `Bearer ${token}` },
 });

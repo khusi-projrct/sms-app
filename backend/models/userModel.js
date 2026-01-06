@@ -8,6 +8,6 @@ const userSchema = new mongoose.Schema({
     resetPasswordToken: { type: String },
     resetPasswordExpires: { type: Date },
     avatarUrl: { type: String }
-});
+}, { timestamps: true });
 
 module.exports = mongoose.model("user", userSchema);

@@ -110,7 +110,8 @@ const getProfile = async (req, res) => {
                 email: user.email,
                 avatarUrl: user.avatarUrl,
                 roles,
-                permissions
+                permissions,
+                createdAt: user.createdAt,
             }
         });
 
@@ -147,16 +148,16 @@ const forgotPassword = async (req, res) => {
     const resetLink = `http://localhost:3000/reset-password/${token}`;
 
     //send email
-const transporter = nodemailer.createTransport({
-  service: "Gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  },
-  tls: {
-    rejectUnauthorized: false  // 👈 allow self-signed certs
-  }
-});
+    const transporter = nodemailer.createTransport({
+        service: "Gmail",
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS
+        },
+        tls: {
+            rejectUnauthorized: false  // 👈 allow self-signed certs
+        }
+    });
 
     const mailOptions = {
         to: user.email,
@@ -194,16 +195,16 @@ const resetPassword = async (req, res) => {
 };
 // image upload 
 const uploadAvatar = async (req, res) => {
-    try{
-        if(!req.file) {
-            return res.status(400).json({message: "No file uploaded"});
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: "No file uploaded" });
         }
         const userId = req.user.id;
         const avatarUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
-        await User.findByIdAndUpdate(userId, {avatarUrl}, { new: true });
-        res.json({message: "Avatar uploaded successfully", avatarUrl});
+        await User.findByIdAndUpdate(userId, { avatarUrl }, { new: true });
+        res.json({ message: "Avatar uploaded successfully", avatarUrl });
     } catch (error) {
-        res.status(500).json({message: error.message});
+        res.status(500).json({ message: error.message });
     }
 };
 
@@ -211,16 +212,28 @@ const updateProfile = async (req, res) => {
     try {
         const userId = req.user.id;
 
+        const updates = {};
         const { username, contactNumber, email, avatarUrl } = req.body;
+
+        if (email && !email.includes("@")) {
+            return res.status(400).json({ message: "Invalid email format" });
+        }
+
+        if (email) {
+            const existingUser = await User.findOne({ email });
+            if (existingUser && existingUser._id.toString() !== userId) {
+                return res.status(400).json({ message: "Email already in use" });
+            }
+        }
+
+        if (username) updates.username = username;
+        if (contactNumber) updates.contactNumber = contactNumber;
+        if (email) updates.email = email;
+        if (avatarUrl) updates.avatarUrl = avatarUrl;
 
         const updatedUser = await User.findByIdAndUpdate(
             userId,
-            {
-                username,
-                contactNumber,
-                email,
-                ...(avatarUrl && { avatarUrl })
-            },
+            { $set: updates },
             { new: true }
         ).select("-password");
 
@@ -233,5 +246,6 @@ const updateProfile = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
 
 module.exports = { registerUser, loginUser, getProfile, getAllUsers, forgotPassword, resetPassword, uploadAvatar, updateProfile };

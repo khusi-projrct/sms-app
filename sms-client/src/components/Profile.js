@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getProfile } from '../api';
+import { getProfile, updateProfile } from '../api';
 
 import TeacherDashboard from '../modules/Teachers/components/TeacherDashboard';
 import AdminDashboard from '../modules/Admins/components/AdminDashboard';
@@ -18,6 +18,7 @@ export default function Profile() {
     const [avatarPreview, setAvatarPreview] = useState(null);
     const [selectedAvatarFile, setSelectedAvatarFile] = useState(null);
     const [originalAvatar, setOriginalAvatar] = useState(null);
+    const [permissions, setPermissions] = useState({});
 
     const navigate = useNavigate();
 
@@ -42,6 +43,12 @@ export default function Profile() {
                 if (res.data.user.roles && res.data.user.roles.length > 0) {
                     setSelectedRole(res.data.user.roles[0]);
                 }
+
+                const permissionMatrix = buildPermissionMatrix(
+                    res.data.user.permissions || []
+                );
+
+                setPermissions(permissionMatrix);
             } catch (error) {
                 alert('Failed to load profile');
                 navigate('/login');
@@ -50,6 +57,28 @@ export default function Profile() {
 
         fetchProfile();
     }, [navigate]);
+
+    const buildPermissionMatrix = (permissions = []) => {
+        const matrix = {};
+
+        permissions.forEach((perm) => {
+            const [module, action] = perm.split("/");
+
+            if (!matrix[module]) {
+                matrix[module] = {
+                    read: false,
+                    write: false,
+                    create: false,
+                    delete: false
+                };
+            }
+
+            matrix[module][action] = true;
+        });
+
+        return matrix;
+    };
+
 
     const handleRoleChange = (e) => {
         const role = e.target.value;
@@ -68,8 +97,9 @@ export default function Profile() {
     const handleSave = async () => {
         try {
             const token = localStorage.getItem("token");
+            let updatedAvatarUrl = editableProfile.avatarUrl;
 
-            // 1️⃣ Upload avatar if changed
+            // Upload avatar if changed
             if (selectedAvatarFile) {
                 const formData = new FormData();
                 formData.append("avatar", selectedAvatarFile);
@@ -89,15 +119,28 @@ export default function Profile() {
 
                 if (!res.ok) throw new Error(data.message);
 
-                // update avatar everywhere
-                setAvatarPreview(data.avatarUrl);
-                setOriginalAvatar(data.avatarUrl);
-                setEditableProfile(prev => ({ ...prev, avatarUrl: data.avatarUrl }));
+                updatedAvatarUrl = data.avatarUrl;
             }
 
-            // 2️⃣ Save profile locally
-            setProfile(editableProfile);
+            // Update profile in backend
+            const payload = {
+                username: editableProfile.username,
+                email: editableProfile.email,
+                contactNumber: editableProfile.contactNumber,
+                avatarUrl: updatedAvatarUrl,
+            };
+
+            const res = await updateProfile(payload, token);
+
+            // Update frontend state
+            setProfile(res.data.user);
+            setEditableProfile(res.data.user);
+            setOriginalAvatar(res.data.user.avatarUrl);
+            setAvatarPreview(null);
+            setSelectedAvatarFile(null);
             setIsEditMode(false);
+
+            alert("Profile updated successfully");
 
         } catch (error) {
             alert(error.message || "Avatar upload failed");
@@ -254,10 +297,11 @@ export default function Profile() {
                                                                             <input
                                                                                 type="text"
                                                                                 className="form-control"
+                                                                                name="username"
                                                                                 placeholder="Username"
-                                                                                defaultValue="dean3004"
+                                                                                value={editableProfile.username || ""}
+                                                                                onChange={handleChange}
                                                                                 required
-                                                                                data-validation-required-message="This username field is required"
                                                                             />
                                                                         </div>
                                                                     </div>
@@ -267,10 +311,11 @@ export default function Profile() {
                                                                             <input
                                                                                 type="text"
                                                                                 className="form-control"
+                                                                                name="name"
                                                                                 placeholder="Name"
-                                                                                defaultValue="Dean Stanley"
+                                                                                value={editableProfile.name || ""}
+                                                                                onChange={handleChange}
                                                                                 required
-                                                                                data-validation-required-message="This name field is required"
                                                                             />
                                                                         </div>
                                                                     </div>
@@ -280,10 +325,11 @@ export default function Profile() {
                                                                             <input
                                                                                 type="email"
                                                                                 className="form-control"
+                                                                                name="email"
                                                                                 placeholder="Email"
-                                                                                defaultValue="deanstanley@gmail.com"
+                                                                                value={editableProfile.email || ""}
+                                                                                onChange={handleChange}
                                                                                 required
-                                                                                data-validation-required-message="This email field is required"
                                                                             />
                                                                         </div>
                                                                     </div>
@@ -292,25 +338,29 @@ export default function Profile() {
                                                                 <div className="col-12 col-sm-6">
                                                                     <div className="form-group">
                                                                         <label>Role</label>
-                                                                        <select className="form-control">
-                                                                            <option>User</option>
-                                                                            <option>Staff</option>
+                                                                        <select className="form-control" disabled>
+                                                                            <option>
+                                                                                {profile.roles && profile.roles.length > 0
+                                                                                    ? profile.roles[0]
+                                                                                    : "User"}
+                                                                            </option>
                                                                         </select>
                                                                     </div>
                                                                     <div className="form-group">
                                                                         <label>Status</label>
-                                                                        <select className="form-control">
+                                                                        <select className="form-control" disabled>
                                                                             <option>Active</option>
-                                                                            <option>Banned</option>
-                                                                            <option>Close</option>
                                                                         </select>
                                                                     </div>
                                                                     <div className="form-group">
-                                                                        <label>Company</label>
+                                                                        <label>Contact</label>
                                                                         <input
                                                                             type="text"
                                                                             className="form-control"
-                                                                            placeholder="Company name"
+                                                                            name="contactNumber"
+                                                                            placeholder="Contact Number"
+                                                                            value={editableProfile.contactNumber || ""}
+                                                                            onChange={handleChange}
                                                                         />
                                                                     </div>
                                                                 </div>
@@ -328,35 +378,23 @@ export default function Profile() {
                                                                                 </tr>
                                                                             </thead>
                                                                             <tbody>
-                                                                                {/* Repeatable rows */}
-                                                                                {[
-                                                                                    {
-                                                                                        module: "Users",
-                                                                                        checks: [true, false, false, true],
-                                                                                    },
-                                                                                    {
-                                                                                        module: "Articles",
-                                                                                        checks: [false, true, false, true],
-                                                                                    },
-                                                                                    {
-                                                                                        module: "Staff",
-                                                                                        checks: [true, true, false, false],
-                                                                                    },
-                                                                                ].map((row, idx) => (
-                                                                                    <tr key={idx}>
-                                                                                        <td>{row.module}</td>
-                                                                                        {row.checks.map((val, cIdx) => (
-                                                                                            <td key={cIdx}>
+                                                                                {Object.entries(permissions).map(([module, actions]) => (
+                                                                                    <tr key={module}>
+                                                                                        <td>{module}</td>
+
+                                                                                        {["read", "write", "create", "delete"].map((action) => (
+                                                                                            <td key={action}>
                                                                                                 <div className="custom-control custom-checkbox">
                                                                                                     <input
                                                                                                         type="checkbox"
-                                                                                                        id={`users-checkbox${idx * 4 + cIdx + 1}`}
                                                                                                         className="custom-control-input"
-                                                                                                        defaultChecked={val}
+                                                                                                        id={`${module}-${action}`}
+                                                                                                        checked={actions[action]}
+                                                                                                        disabled   //users cannot change permissions
                                                                                                     />
                                                                                                     <label
                                                                                                         className="custom-control-label"
-                                                                                                        htmlFor={`users-checkbox${idx * 4 + cIdx + 1}`}
+                                                                                                        htmlFor={`${module}-${action}`}
                                                                                                     ></label>
                                                                                                 </div>
                                                                                             </td>
@@ -364,6 +402,7 @@ export default function Profile() {
                                                                                     </tr>
                                                                                 ))}
                                                                             </tbody>
+
                                                                         </table>
                                                                     </div>
                                                                 </div>
@@ -381,7 +420,7 @@ export default function Profile() {
                                                                         className="btn btn-light"
                                                                         onClick={() => {
                                                                             setEditableProfile(profile);
-                                                                            setAvatarPreview(originalAvatar);
+                                                                            setAvatarPreview(null);
                                                                             setSelectedAvatarFile(null);
                                                                             setIsEditMode(false);
                                                                         }}
@@ -585,12 +624,12 @@ export default function Profile() {
                                             </a>
                                             <div className="media-body pt-25">
                                                 <h4 className="media-heading">
-                                                    <span className="user-name">{username}</span>
+                                                    <span className="user-name">{profile.username}</span>
                                                     <span className="text-muted font-medium-1">@</span>
-                                                    <span className="users-view-username text-muted font-medium-1">candy007</span>
+                                                    <span className="users-view-username text-muted font-medium-1">{profile.email}</span>
                                                 </h4>
                                                 <span>ID:</span>
-                                                <span className="users-view-id">305</span>
+                                                <span className="users-view-id">{profile._id}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -618,11 +657,13 @@ export default function Profile() {
                                                         <tbody>
                                                             <tr>
                                                                 <td>Registered:</td>
-                                                                <td>01/01/2019</td>
+                                                                <td>{new Date(profile.createdAt).toLocaleDateString()}</td>
                                                             </tr>
                                                             <tr>
                                                                 <td>Latest Activity:</td>
-                                                                <td className="users-view-latest-activity">30/04/2019</td>
+                                                                <td className="users-view-latest-activity">{profile.updatedAt
+                                                                    ? new Date(profile.updatedAt).toLocaleDateString()
+                                                                    : "—"}</td>
                                                             </tr>
                                                             <tr>
                                                                 <td>Verified:</td>
@@ -630,7 +671,7 @@ export default function Profile() {
                                                             </tr>
                                                             <tr>
                                                                 <td>Role:</td>
-                                                                <td className="users-view-role">Staff</td>
+                                                                <td className="users-view-role">{profile.roles?.[0] || "User"}</td>
                                                             </tr>
                                                             <tr>
                                                                 <td>Status:</td>
@@ -654,28 +695,17 @@ export default function Profile() {
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
-                                                                <tr>
-                                                                    <td>Users</td>
-                                                                    <td>Yes</td>
-                                                                    <td>No</td>
-                                                                    <td>No</td>
-                                                                    <td>Yes</td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td>Articles</td>
-                                                                    <td>No</td>
-                                                                    <td>Yes</td>
-                                                                    <td>No</td>
-                                                                    <td>Yes</td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td>Staff</td>
-                                                                    <td>Yes</td>
-                                                                    <td>Yes</td>
-                                                                    <td>No</td>
-                                                                    <td>No</td>
-                                                                </tr>
+                                                                {Object.entries(permissions).map(([module, actions]) => (
+                                                                    <tr key={module}>
+                                                                        <td>{module}</td>
+                                                                        <td>{actions.read ? "Yes" : "No"}</td>
+                                                                        <td>{actions.write ? "Yes" : "No"}</td>
+                                                                        <td>{actions.create ? "Yes" : "No"}</td>
+                                                                        <td>{actions.delete ? "Yes" : "No"}</td>
+                                                                    </tr>
+                                                                ))}
                                                             </tbody>
+
                                                         </table>
                                                     </div>
                                                 </div>
@@ -712,19 +742,19 @@ export default function Profile() {
                                                     <tbody>
                                                         <tr>
                                                             <td>Username:</td>
-                                                            <td className="users-view-username">dean3004</td>
+                                                            <td className="users-view-username">{profile.username}</td>
                                                         </tr>
                                                         <tr>
                                                             <td>Name:</td>
-                                                            <td className="users-view-name">Dean Stanley</td>
+                                                            <td className="users-view-name">{profile.username}</td>
                                                         </tr>
                                                         <tr>
                                                             <td>E-mail:</td>
-                                                            <td className="users-view-email">deanstanley@gmail.com</td>
+                                                            <td className="users-view-email">{profile.email}</td>
                                                         </tr>
                                                         <tr>
-                                                            <td>Company:</td>
-                                                            <td>XYZ Corp. Ltd.</td>
+                                                            <td>Contact:</td>
+                                                            <td>{profile.contactNumber || "N/A"}</td>
                                                         </tr>
                                                     </tbody>
                                                 </table>
