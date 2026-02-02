@@ -1,29 +1,35 @@
 const UserRole = require("../models/userRole");
 const RolePermission = require("../models/rolePermission");
-const Permission = require("../models/permission");
 
-const checkPermission = (requiredPermissionName) => {
-    return async (req, res, next) => {
-        try {
-            const userId = req.user.userId;
+const checkPermission = (moduleName, action) => {
+  return async (req, res, next) => {
+    try {
+      const userId = req.user.id;
 
-            const userRoles = await UserRole.findOne({ userId });
-            if (!userRoles || !userRoles.roleIds.length) {
-                return res.status(403).json({ message: "No roles assigned to this user" });
-            }
+      const userRole = await UserRole.findOne({ userId });
+      if (!userRole || !userRole.roleIds.length) {
+        return res.status(403).json({ message: "No roles assigned" });
+      }
 
-            const rolePermissions = await RolePermission.find({ roleId: { $in: userRoles.roleIds } }).populate("permissionIds");
-            const allPermissionNames = rolePermissions.flatMap(rp => rp.permissionIds.map(p => p.name));
+      const rolePermissions = await RolePermission.find({
+        roleId: { $in: userRole.roleIds }
+      }).populate("permissionId");
 
-            if (!allPermissionNames.includes(requiredPermissionName)) {
-                return res.status(403).json({ message: "Permission denied" });
-            }
+      const hasPermission = rolePermissions.some(rp =>
+        rp.permissionId &&
+        rp.permissionId.module === moduleName &&
+        rp.allowedActions.includes(action)
+      );
 
-            next();
-        } catch (error) {
-            res.status(500).json({ message: error.message })
-        }
-    };
+      if (!hasPermission) {
+        return res.status(403).json({ message: "Permission denied" });
+      }
+
+      next();
+    } catch (error) {
+      res.status(500).json({ message: "Permission check failed" });
+    }
+  };
 };
 
 module.exports = checkPermission;

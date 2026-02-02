@@ -1,19 +1,23 @@
 const mongoose = require("mongoose");
 
-const permissionSchema = new mongoose.Schema({
-    tag: {
-        type: String,
-        required: true
+const permissionSchema = new mongoose.Schema(
+  {
+    module: {
+      type: String,
+      required: true,
+      lowercase: true,
+      trim: true
     },
     actions: {
-        type: String,
-        required: true,
+      type: [String],
+      required: true,
+      enum: ["create", "read", "update", "delete"]
     }
-});
+  },
+  { timestamps: true }
+);
 
-// Create a compound unique index
-permissionSchema.index({ tag: 1, actions: 1 }, { unique: true });
+// One permission document per module
+permissionSchema.index({ module: 1 }, { unique: true });
 
-const Permission = mongoose.model("Permission", permissionSchema);
-
-module.exports = Permission;
+module.exports = mongoose.model("Permission", permissionSchema);

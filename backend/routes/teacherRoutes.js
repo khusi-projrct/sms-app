@@ -3,22 +3,22 @@ const router = express.Router();
 const authMiddleware = require("../middleware/authMiddleware");
 const checkPermission = require("../middleware/checkPermission");
 const {
-  createClass,
-  getClasses
-} = require("../controllers/classController");
+  createTeacher,
+  getTeachers
+} = require("../controllers/teacherController");
 
 router.post(
   "/",
   authMiddleware,
-  checkPermission("class", "create"),
-  createClass
+  checkPermission("teacher", "create"),
+  createTeacher
 );
 
 router.get(
-  "/schoolId/:schoolId",
+  "/",
   authMiddleware,
-  checkPermission("class", "read"),
-  getClasses
+  checkPermission("teacher", "read"),
+  getTeachers
 );
 
 module.exports = router;

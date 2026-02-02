@@ -1,17 +1,29 @@
 const mongoose = require("mongoose");
 
-const rolePermissionSchema = new mongoose.Schema({
+const rolePermissionSchema = new mongoose.Schema(
+  {
     roleId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Role",
-        required: true
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Role",
+      required: true
     },
-    permissionIds: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Permission"
-        }
-    ]
-});
+    permissionId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Permission",
+      required: true
+    },
+    allowedActions: {
+      type: [String],
+      enum: ["create", "read", "update", "delete"],
+      required: true
+    }
+  },
+  { timestamps: true }
+);
 
-module.exports = mongoose.model("rolePermission", rolePermissionSchema);
+rolePermissionSchema.index(
+  { roleId: 1, permissionId: 1 },
+  { unique: true }
+);
+
+module.exports = mongoose.model("RolePermission", rolePermissionSchema);

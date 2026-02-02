@@ -1,11 +1,12 @@
 const mongoose = require("mongoose");
 
-const subjectSchema = new mongoose.Schema(
+const studentSchema = new mongoose.Schema(
   {
-    name: {
-      type: String,
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
       required: true,
-      trim: true
+      unique: true
     },
 
     schoolId: {
@@ -20,23 +21,23 @@ const subjectSchema = new mongoose.Schema(
       required: true
     },
 
+    rollNumber: {
+      type: String,
+      required: true
+    },
+
     isActive: {
       type: Boolean,
       default: true
-    },
-
-    createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User"
     }
   },
   { timestamps: true }
 );
 
-// Prevent duplicate subject per class
-subjectSchema.index(
-  { name: 1, classId: 1 },
+// Unique roll number per class
+studentSchema.index(
+  { rollNumber: 1, classId: 1 },
   { unique: true }
 );
 
-module.exports = mongoose.model("Subject", subjectSchema);
+module.exports = mongoose.model("Student", studentSchema);

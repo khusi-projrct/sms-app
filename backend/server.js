@@ -31,6 +31,21 @@ app.use("/api/user-roles", userRoleRoutes);
 const schoolRoutes = require("./routes/schoolRoutes"); //import schoolRoutes
 app.use("/api/schools", schoolRoutes);
 
+const classRoutes = require("./routes/classRoutes"); //import classRoutes
+app.use("/api/classes", classRoutes);
+
+const subjectRoutes = require("./routes/subjectRoutes"); //import subjectRoutes
+app.use("/api/subjects", subjectRoutes);
+
+const teacherRoutes = require("./routes/teacherRoutes"); //import teacherRoutes
+app.use("/api/teachers", teacherRoutes);
+
+const studentRoutes = require("./routes/studentRoutes"); //import studentRoutes
+app.use("/api/students", studentRoutes);
+
+const attendanceRoutes = require("./routes/attendanceRoutes"); //import attendanceRoutes
+app.use("/api/attendance", attendanceRoutes);
+
 const subscriptionPlanRoutes = require("./routes/subscriptionPlanRoutes"); //import subscriptionPlanRoutes
 app.use("/api/subscription-plans", subscriptionPlanRoutes);
 
@@ -39,15 +54,6 @@ app.use("/api/subscriptions", subscriptionRoutes);
 
 const paymentRoutes = require("./routes/paymentRoutes"); //import paymentRoutes
 app.use("/api/payments", paymentRoutes);
-
-const classRoutes = require("./routes/classRoutes"); //import classRoutes
-app.use("/api/classes", classRoutes);
-
-const subjectRoutes = require("./routes/subjectRoutes"); //import subjectRoutes
-app.use("/api/subjects", subjectRoutes);
-
-const attendanceRoutes = require("./routes/attendanceRoutes"); //import attendanceRoutes
-app.use("/api/attendance", attendanceRoutes);
 
 const errorHandler = require("./middleware/errorHandler");
 app.use(errorHandler);

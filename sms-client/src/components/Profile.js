@@ -59,25 +59,28 @@ export default function Profile() {
     }, [navigate]);
 
     const buildPermissionMatrix = (permissions = []) => {
-        const matrix = {};
+    const matrix = {};
 
-        permissions.forEach((perm) => {
-            const [module, action] = perm.split("/");
+    permissions.forEach((perm) => {
+        const module = perm.module;
 
-            if (!matrix[module]) {
-                matrix[module] = {
-                    read: false,
-                    write: false,
-                    create: false,
-                    delete: false
-                };
-            }
+        if (!matrix[module]) {
+            matrix[module] = {
+                create: false,
+                read: false,
+                update: false,
+                delete: false,
+            };
+        }
 
+        perm.actions.forEach(action => {
             matrix[module][action] = true;
         });
+    });
 
-        return matrix;
-    };
+    return matrix;
+};
+
 
 
     const handleRoleChange = (e) => {

@@ -1,36 +1,41 @@
-const mongoose = require('mongoose');
-const { create, updateMany } = require('./rolePermission');
+const mongoose = require("mongoose");
 
-const classSchema = new mongoose.Schema({
+const classSchema = new mongoose.Schema(
+  {
     name: {
-        type: String,
-        required: true,
+      type: String,
+      required: true,
+      trim: true
     },
-    school: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'School',
-        required: true,
+
+    schoolId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "School",
+      required: true
     },
+
     section: {
-        type: String,
+      type: String, // A, B, C
+      default: "A"
     },
-    teacher: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+
+    isActive: {
+      type: Boolean,
+      default: true
     },
-    createdAt: {
-        type: Date,
-        default: Date.now,
-    },
-    updatedAt: {
-        type: Date,
-        default: Date.now,
+
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User"
     }
-});
+  },
+  { timestamps: true }
+);
 
-classSchema.pre('save', function (next) {
-    this.updatedAt = Date.now();
-    next();
-});
+// One class name per school
+classSchema.index(
+  { name: 1, section: 1, schoolId: 1 },
+  { unique: true }
+);
 
-module.exports = mongoose.model('Class', classSchema);
+module.exports = mongoose.model("Class", classSchema);

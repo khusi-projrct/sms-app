@@ -1,12 +1,20 @@
-const express = require('express');
-const { createSchool, getAllSchools, getSchool, updateSchool, deleteSchool } = require('../controllers/schoolController');
+const router = require("express").Router();
 const authMiddleware = require("../middleware/authMiddleware");
-const router = express.Router();
+const checkPermission = require("../middleware/checkPermission");
+const { createSchool, getSchools } = require("../controllers/schoolController");
 
-router.post('/create', authMiddleware, createSchool);
-router.get('/', authMiddleware, getAllSchools);
-router.get('/:schoolId', authMiddleware, getSchool);
-router.put('/:schoolId', authMiddleware, updateSchool);
-router.delete('/:schoolId', authMiddleware, deleteSchool)
+router.post(
+  "/",
+  authMiddleware,
+  checkPermission("school", "create"),
+  createSchool
+);
+
+router.get(
+  "/",
+  authMiddleware,
+  checkPermission("school", "read"),
+  getSchools
+);
 
 module.exports = router;

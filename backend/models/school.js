@@ -1,35 +1,32 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const schoolSchema = new mongoose.Schema({
-    school_id: {
-        type: String,
-        required: true,
-        unique: true
-    },
+const schoolSchema = new mongoose.Schema(
+  {
     name: {
-        type: String,
-        required: true
+      type: String,
+      required: true,
+      unique: true,
+      trim: true
     },
     address: {
-        type: String,
-        required: true
+      type: String
     },
-    created_at: {
-        type: Date,
-        default: Date.now
+    phone: {
+      type: String
     },
-    updated_at: {
-        type: Date,
-        default: Date.now
+    email: {
+      type: String
+    },
+    isActive: {
+      type: Boolean,
+      default: true
+    },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User"
     }
-});
+  },
+  { timestamps: true }
+);
 
-
-schoolSchema.pre('save', function (next) {
-    this.updated_at = Date.now();
-    next();
-});
-
-const School = mongoose.model("School", schoolSchema);
-
-module.exports = School;
+module.exports = mongoose.model("School", schoolSchema);

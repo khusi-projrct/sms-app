@@ -14,7 +14,7 @@ router.get("/profile", authMiddleware, getProfile);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password/:token", resetPassword);
 
-router.get("/", authMiddleware, checkPermission("view"), getAllUsers);
+router.get("/", authMiddleware, getAllUsers);
 router.post("/upload-avatar", authMiddleware, upload.single('avatar'), uploadAvatar);
 router.put("/update-profile", authMiddleware, updateProfile);
 
