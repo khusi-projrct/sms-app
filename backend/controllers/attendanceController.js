@@ -1,61 +1,92 @@
-const Attendance = require('../models/attendance');
-const Class = require('../models/class');
+const Attendance = require("../models/attendance");
+const Teacher = require("../models/teacher");
+const Student = require("../models/student");
+const getUserRole = require("../utils/getUserRole");
 
-const createAttendance = async (req, res) => {
-    try {
-        const { student_id, class_id, date, status } = req.body;
-        const classExists = await Class.findById(class_id);
-        if (!classExists) return res.status(404).json({ message: 'Class not found' });
+exports.markAttendance = async (req, res) => {
+  try {
+    const { schoolId, classId, subjectId, date, records } = req.body;
 
-        const newAttendance = new Attendance({ student_id, class_id, date, status });
-        await newAttendance.save();
-        res.status(201).json(newAttendance);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+    // check duplicate
+    const existingAttendance = await Attendance.findOne({
+      classId,
+      subjectId,
+      date: new Date(date)
+    });
+
+    if (existingAttendance) {
+      return res.status(400).json({
+        message: "Attendance already marked for this class & subject on this date"
+      });
     }
+
+    // map teacher correctly
+    const teacher = await Teacher.findOne({ userId: req.user.id });
+    if (!teacher) {
+      return res.status(404).json({ message: "Teacher profile not found" });
+    }
+
+    const attendance = await Attendance.create({
+      schoolId,
+      classId,
+      subjectId,
+      date,
+      teacherId: teacher._id,
+      records
+    });
+
+    res.status(201).json(attendance);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
 };
 
-const getAllAttendance = async (req, res) => {
-    try {
-        const attendance = await Attendance.find()
-            .populate('student_id')
-            .populate('class_id');
-        res.status(200).json(attendance);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
+exports.getAttendance = async (req, res) => {
+  try {
+    const role = await getUserRole(req.user.id);
+    let filter = {};
+    let student = null;
 
-const getAttendanceById = async (req, res) => {
-    try {
-        const attendance = await Attendance.findById(req.params.id)
-            .populate('student_id')
-            .populate('class_id');
-        if (!attendance) return res.status(404).json({ message: 'Attendance not found' });
-        res.status(200).json(attendance);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
+    // Teacher restriction
+    if (role === "teacher") {
+      const teacher = await Teacher.findOne({ userId: req.user.id });
 
-const updateAttendance = async (req, res) => {
-    try {
-        const updatedAttendance = await Attendance.findByIdAndUpdate(req.params.id);
-        if (!updatedAttendance) return res.status(404).json({ message: 'Attendance not found' });
-        res.status(200).json(updatedAttendance);
-    } catch (error) {
-        res.status(400).json({ error: error.message });
+      filter.classId = { $in: teacher.assignedClasses };
+      filter.subjectId = { $in: teacher.assignedSubjects };
     }
-};
 
-const deleteAttendance = async (req, res) => {
-    try {
-        const deletedAttendance = await Attendance.findByIdAndDelete(req.params.id);
-        if (!deletedAttendance) return res.status(404).json({ message: 'Attendance not found' });
-        res.status(200).json({ message: 'Attendance deleted successfully' });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
+    // Student restriction
+    if (role === "student") {
+      student = await Student.findOne({ userId: req.user.id });
+
+      if (!student) {
+        return res.status(404).json({ message: "Student profile not found" });
+      }
+
+      filter["records.studentId"] = student._id;
     }
-};
 
-module.exports = { createAttendance, getAllAttendance, getAttendanceById, updateAttendance, deleteAttendance }; 
+    // optional query filters
+    if (req.query.classId) filter.classId = req.query.classId;
+    if (req.query.subjectId) filter.subjectId = req.query.subjectId;
+    if (req.query.date) filter.date = new Date(req.query.date);
+
+    const attendance = await Attendance.find(filter)
+      .populate("classId", "name section")
+      .populate("subjectId", "name")
+      .populate("records.studentId", "rollNumber");
+
+    // student sees only their record
+    if (role === "student") {
+      attendance.forEach(a => {
+        a.records = a.records.filter(
+          r => r.studentId._id.toString() === student._id.toString()
+        );
+      });
+    }
+
+    res.json(attendance);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

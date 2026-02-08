@@ -1,12 +1,24 @@
 const express = require("express");
-const { createAttendance, getAllAttendance, getAttendanceById, updateAttendance, deleteAttendance } = require("../controllers/attendanceController");
-const authMiddleware = require("../middleware/authMiddleware");
-
 const router = express.Router();
+const authMiddleware = require("../middleware/authMiddleware");
+const checkPermission = require("../middleware/checkPermission");
+const {
+  markAttendance,
+  getAttendance
+} = require("../controllers/attendanceController");
 
-router.post("/", authMiddleware, createAttendance);
-router.get("/", authMiddleware, getAllAttendance);
-router.get("/class/:classId", authMiddleware, getAttendanceById);
-router.put("/:attendanceId", authMiddleware, updateAttendance);
-router.delete("/:attendanceId", authMiddleware, deleteAttendance);
+router.post(
+  "/",
+  authMiddleware,
+  checkPermission("attendance", "create"),
+  markAttendance
+);
+
+router.get(
+  "/:classId?",
+  authMiddleware,
+  checkPermission("attendance", "read"),
+  getAttendance
+);
+
 module.exports = router;
