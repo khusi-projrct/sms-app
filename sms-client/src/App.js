@@ -1,20 +1,20 @@
 import React, { Suspense, lazy, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
-import RoleProtectedRoute from './components/RoleProtectedRoute';
+import RoleProtectedRoute from './auth/RoleProtectedRoute';
 import Layout from './shared/Layout';
 
-const Home = lazy(() => import('./components/Home'));
-const Register = lazy(() => import('./components/Register'));
-const Login = lazy(() => import('./components/Login'));
-const Logout = lazy(() => import('./components/Logout'));
-const Profile = lazy(() => import('./components/Profile'));
-const StudentDashboard = lazy(() => import('./modules/Students/components/StudentDashboard'));
-const TeacherDashboard = lazy(() => import('./modules/Teachers/components/TeacherDashboard'));
-const AdminDashboard = lazy(() => import('./modules/Admins/components/AdminDashboard'));
-const ParentDashboard = lazy(() => import('./modules/Parents/components/ParentDashboard'));
-const RecoverPassword = lazy(() => import('./components/RecoverPassword'));
-const ResetPassword = lazy(() => import('./components/ResetPassword'));
+const Home = lazy(() => import('./modules/common/Home'));
+const Register = lazy(() => import('./auth/Register'));
+const Login = lazy(() => import('./auth/Login'));
+const Logout = lazy(() => import('./auth/Logout'));
+const Profile = lazy(() => import('./modules/common/Profile'));
+const StudentDashboard = lazy(() => import('./modules/student/StudentDashboard'));
+const TeacherDashboard = lazy(() => import('./modules/teacher/TeacherDashboard'));
+const AdminDashboard = lazy(() => import('./modules/admin/AdminDashboard'));
+const ParentDashboard = lazy(() => import('./modules/parent/ParentDashboard'));
+const RecoverPassword = lazy(() => import('./auth/RecoverPassword'));
+const ResetPassword = lazy(() => import('./auth/ResetPassword'));
 
 function BodyClassManager() {
   const location = useLocation();

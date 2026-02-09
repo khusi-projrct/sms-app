@@ -77,9 +77,11 @@
               }
             }
             setTimeout(function () {
-              $.app.menu.container.stop().animate({
-                scrollTop: change
-              }, 300);
+              if ($.app.menu.container && typeof $.app.menu.container.stop === 'function') {
+                $.app.menu.container.stop().animate({
+                  scrollTop: change
+                }, 300);
+              }
               $('.main-menu').data('scroll-to-active', 'false');
             }, 300);
           }

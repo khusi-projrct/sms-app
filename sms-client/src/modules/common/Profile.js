@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getProfile, updateProfile } from '../api';
+import { getProfile, updateProfile } from '../../api';
 
-import TeacherDashboard from '../modules/Teachers/components/TeacherDashboard';
-import AdminDashboard from '../modules/Admins/components/AdminDashboard';
-import StudentDashboard from '../modules/Students/components/StudentDashboard';
-import ParentDashboard from '../modules/Parents/components/ParentDashboard';
+import TeacherDashboard from '../teacher/TeacherDashboard';
+import AdminDashboard from '../admin/AdminDashboard';
+import StudentDashboard from '../student/StudentDashboard';
+import ParentDashboard from '../parent/ParentDashboard';
 
 export default function Profile() {
     const userData = localStorage.getItem('user');
@@ -18,7 +18,7 @@ export default function Profile() {
     const [avatarPreview, setAvatarPreview] = useState(null);
     const [selectedAvatarFile, setSelectedAvatarFile] = useState(null);
     const [originalAvatar, setOriginalAvatar] = useState(null);
-    const [permissions, setPermissions] = useState({});
+    const [profilePermissions, setProfilePermissions] = useState({});
 
     const navigate = useNavigate();
 
@@ -48,7 +48,7 @@ export default function Profile() {
                     res.data.user.permissions || []
                 );
 
-                setPermissions(permissionMatrix);
+                setProfilePermissions(permissionMatrix);
             } catch (error) {
                 alert('Failed to load profile');
                 navigate('/login');
@@ -374,18 +374,18 @@ export default function Profile() {
                                                                             <thead>
                                                                                 <tr>
                                                                                     <th>Module Permission</th>
-                                                                                    <th>Read</th>
-                                                                                    <th>Write</th>
                                                                                     <th>Create</th>
+                                                                                    <th>Read</th>
+                                                                                    <th>Update</th>
                                                                                     <th>Delete</th>
                                                                                 </tr>
                                                                             </thead>
                                                                             <tbody>
-                                                                                {Object.entries(permissions).map(([module, actions]) => (
+                                                                                {Object.entries(profilePermissions).map(([module, actions]) => (
                                                                                     <tr key={module}>
                                                                                         <td>{module}</td>
 
-                                                                                        {["read", "write", "create", "delete"].map((action) => (
+                                                                                        {["create", "read", "update", "delete"].map((action) => (
                                                                                             <td key={action}>
                                                                                                 <div className="custom-control custom-checkbox">
                                                                                                     <input
@@ -691,19 +691,19 @@ export default function Profile() {
                                                             <thead>
                                                                 <tr>
                                                                     <th>Module Permission</th>
-                                                                    <th>Read</th>
-                                                                    <th>Write</th>
                                                                     <th>Create</th>
+                                                                    <th>Read</th>
+                                                                    <th>Update</th>
                                                                     <th>Delete</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
-                                                                {Object.entries(permissions).map(([module, actions]) => (
+                                                                {Object.entries(profilePermissions).map(([module, actions]) => (
                                                                     <tr key={module}>
                                                                         <td>{module}</td>
-                                                                        <td>{actions.read ? "Yes" : "No"}</td>
-                                                                        <td>{actions.write ? "Yes" : "No"}</td>
                                                                         <td>{actions.create ? "Yes" : "No"}</td>
+                                                                        <td>{actions.read ? "Yes" : "No"}</td>
+                                                                        <td>{actions.update ? "Yes" : "No"}</td>
                                                                         <td>{actions.delete ? "Yes" : "No"}</td>
                                                                     </tr>
                                                                 ))}
