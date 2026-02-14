@@ -2,7 +2,9 @@ import React, { Suspense, lazy, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import RoleProtectedRoute from './auth/RoleProtectedRoute';
+import PermissionRoute from "./auth/PermissionRoute";
 import Layout from './shared/Layout';
+import { ToastProvider } from "./context/ToastContext";
 
 const Home = lazy(() => import('./modules/common/Home'));
 const Register = lazy(() => import('./auth/Register'));
@@ -15,6 +17,8 @@ const AdminDashboard = lazy(() => import('./modules/admin/AdminDashboard'));
 const ParentDashboard = lazy(() => import('./modules/parent/ParentDashboard'));
 const RecoverPassword = lazy(() => import('./auth/RecoverPassword'));
 const ResetPassword = lazy(() => import('./auth/ResetPassword'));
+
+const SchoolList = lazy(() => import('./modules/admin/schools/SchoolList'));
 
 function BodyClassManager() {
   const location = useLocation();
@@ -49,59 +53,70 @@ function BodyClassManager() {
 
 function App() {
   return (
-    <BrowserRouter>
-      <BodyClassManager />
-      <Suspense fallback={<div>Loading...</div>}>
-        <Routes>
-          {/* No layout for login/register */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/logout" element={<Logout />} />
+    <ToastProvider>
+      <BrowserRouter>
+        <BodyClassManager />
+        <Suspense fallback={<div>Loading...</div>}>
+          <Routes>
+            {/* No layout for login/register */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/logout" element={<Logout />} />
 
-          {/* Routes with shared layout */}
-          <Route element={<Layout />}>
-            <Route path="/" element={<Home />} />
-            <Route path="/profile" element={<Profile />} />
+            {/* Routes with shared layout */}
+            <Route element={<Layout />}>
+              <Route path="/" element={<Home />} />
+              <Route path="/profile" element={<Profile />} />
 
-            <Route
-              path="/students/dashboard"
-              element={
-                <RoleProtectedRoute allowedRoles={['student']}>
-                  <StudentDashboard />
-                </RoleProtectedRoute>
-              }
-            />
-            <Route
-              path="/teachers/dashboard"
-              element={
-                <RoleProtectedRoute allowedRoles={['teacher']}>
-                  <TeacherDashboard />
-                </RoleProtectedRoute>
-              }
-            />
-            <Route
-              path="/admins/dashboard"
-              element={
-                <RoleProtectedRoute allowedRoles={['admin']}>
-                  <AdminDashboard />
-                </RoleProtectedRoute>
-              }
-            />
-            <Route
-              path="/parents/dashboard"
-              element={
-                <RoleProtectedRoute allowedRoles={['parent']}>
-                  <ParentDashboard />
-                </RoleProtectedRoute>
-              }
-            />
-          </Route>
-          <Route path="/recover-password" element={<RecoverPassword />} />  
-          <Route path="/reset-password/:token" element={<ResetPassword />} />
-        </Routes>
-      </Suspense>
-    </BrowserRouter>
-
+              <Route
+                path="/students/dashboard"
+                element={
+                  <RoleProtectedRoute allowedRoles={['student']}>
+                    <StudentDashboard />
+                  </RoleProtectedRoute>
+                }
+              />
+              <Route
+                path="/teachers/dashboard"
+                element={
+                  <RoleProtectedRoute allowedRoles={['teacher']}>
+                    <TeacherDashboard />
+                  </RoleProtectedRoute>
+                }
+              />
+              <Route
+                path="/admins/dashboard"
+                element={
+                  <RoleProtectedRoute allowedRoles={['admin']}>
+                    <AdminDashboard />
+                  </RoleProtectedRoute>
+                }
+              />
+              <Route
+                path="/admins/schools"
+                element={
+                  <RoleProtectedRoute allowedRoles={['admin']}>
+                    <PermissionRoute permission="school:read">
+                      <SchoolList />
+                    </PermissionRoute>
+                  </RoleProtectedRoute>
+                }
+              />
+              <Route
+                path="/parents/dashboard"
+                element={
+                  <RoleProtectedRoute allowedRoles={['parent']}>
+                    <ParentDashboard />
+                  </RoleProtectedRoute>
+                }
+              />
+            </Route>
+            <Route path="/recover-password" element={<RecoverPassword />} />
+            <Route path="/reset-password/:token" element={<ResetPassword />} />
+          </Routes>
+        </Suspense>
+      </BrowserRouter>
+    </ToastProvider>
   );
 }
 

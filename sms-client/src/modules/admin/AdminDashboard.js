@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
+import PermissionGuard from "../../auth/PermissionGuard";
 
 export default function AdminDashboard() {
     const { user, role, permissions, logout } = useAuth();
@@ -20,6 +21,13 @@ export default function AdminDashboard() {
             <button className="btn btn-danger mt-3" onClick={logout}>
                 Logout
             </button>
+            <PermissionGuard permission="school:create">
+                <button className="btn btn-primary">Create School</button>
+            </PermissionGuard>
+
+            <PermissionGuard permission="school:read">
+                <button className="btn btn-secondary">View Schools</button>
+            </PermissionGuard>
         </div>
     );
 }

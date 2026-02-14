@@ -1,7 +1,17 @@
-import client from './client';
+import client, { authHeaders } from "./client";
 
-export const getSchools = () => client.get('/schools');
-export const getSchoolById = (schoolId) => client.get(`/schools/${schoolId}`);      
-export const createSchool = (schoolData) => client.post('/schools', schoolData);
-export const updateSchool = (schoolId, schoolData) => client.put(`/schools/${schoolId}`, schoolData);   
-export const deleteSchool = (schoolId) => client.delete(`/schools/${schoolId}`);
+export const getSchools = (params, token) => {
+    return client.get("/schools", {
+        ...authHeaders(token),
+        params,
+    });
+};
+
+export const createSchool = (data, token) =>
+  client.post("/schools", data, authHeaders(token));
+
+export const updateSchool = (id, data, token) => 
+  client.put(`/schools/${id}`, data, authHeaders(token));
+
+export const deleteSchool = (id, token) =>
+  client.delete(`/schools/${id}`, authHeaders(token));
