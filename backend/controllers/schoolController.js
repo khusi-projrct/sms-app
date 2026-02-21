@@ -45,6 +45,15 @@ const getSchools = async (req, res) => {
     }
 };
 
+const getAllSchools = async (req, res) => {
+  try {
+    const schools = await School.find().select("_id name");
+    res.json(schools);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // UPDATE SCHOOL
 const updateSchool = async (req, res) => {
   try {
@@ -97,6 +106,7 @@ const deleteSchool = async (req, res) => {
 module.exports = {
   createSchool,
   getSchools,
+  getAllSchools,
   updateSchool,
   deleteSchool  
 };

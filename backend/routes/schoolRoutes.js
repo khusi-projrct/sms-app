@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const authMiddleware = require("../middleware/authMiddleware");
 const checkPermission = require("../middleware/checkPermission");
-const { createSchool, getSchools, updateSchool, deleteSchool } = require("../controllers/schoolController");
+const { createSchool, getSchools, getAllSchools, updateSchool, deleteSchool } = require("../controllers/schoolController");
 
 router.post(
   "/",
@@ -16,6 +16,13 @@ router.get(
   checkPermission("school", "read"),
   getSchools
 );
+
+router.get(
+  "/all",
+  authMiddleware,
+  checkPermission("school", "read"),
+  getAllSchools
+);  
 
 router.put(
   "/:id",
