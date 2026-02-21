@@ -132,49 +132,50 @@ export default function SchoolList() {
                             ))}
                         </tbody>
                     </table>
-                    <div className="d-flex justify-content-center mt-4">
-                        <nav>
-                            <ul className="pagination">
 
-                                <li className={`page-item ${page === 1 ? "disabled" : ""}`}>
-                                    <button
-                                        className="page-link"
-                                        onClick={() => setPage(page - 1)}
-                                    >
-                                        Previous
-                                    </button>
-                                </li>
+                    {totalPages > 1 && (
+                        <div className="d-flex justify-content-center mt-4">
+                            <nav aria-label="Pagination">
+                                <ul className="pagination">
 
-                                {[...Array(totalPages)].map((_, index) => (
-                                    <li
-                                        key={index}
-                                        className={`page-item ${page === index + 1 ? "active" : ""
-                                            }`}
-                                    >
+                                    <li className={`page-item ${page === 1 ? "disabled" : ""}`}>
                                         <button
                                             className="page-link"
-                                            onClick={() => setPage(index + 1)}
+                                            onClick={() => setPage(prev => prev - 1)}
+                                            disabled={page === 1}
                                         >
-                                            {index + 1}
+                                            Previous
                                         </button>
                                     </li>
-                                ))}
 
-                                <li
-                                    className={`page-item ${page === totalPages ? "disabled" : ""
-                                        }`}
-                                >
-                                    <button
-                                        className="page-link"
-                                        onClick={() => setPage(page + 1)}
-                                    >
-                                        Next
-                                    </button>
-                                </li>
+                                    {[...Array(totalPages)].map((_, index) => (
+                                        <li
+                                            key={index}
+                                            className={`page-item ${page === index + 1 ? "active" : ""}`}
+                                        >
+                                            <button
+                                                className="page-link"
+                                                onClick={() => setPage(index + 1)}
+                                            >
+                                                {index + 1}
+                                            </button>
+                                        </li>
+                                    ))}
 
-                            </ul>
-                        </nav>
-                    </div>
+                                    <li className={`page-item ${page === totalPages ? "disabled" : ""}`}>
+                                        <button
+                                            className="page-link"
+                                            onClick={() => setPage(prev => prev + 1)}
+                                            disabled={page === totalPages}
+                                        >
+                                            Next
+                                        </button>
+                                    </li>
+
+                                </ul>
+                            </nav>
+                        </div>
+                    )}
 
                 </>
             )}

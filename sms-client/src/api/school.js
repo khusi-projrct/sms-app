@@ -7,6 +7,10 @@ export const getSchools = (params, token) => {
     });
 };
 
+export const getAllSchools = (token) => {
+  return client.get("/schools/all", authHeaders(token));
+};
+
 export const createSchool = (data, token) =>
   client.post("/schools", data, authHeaders(token));
 

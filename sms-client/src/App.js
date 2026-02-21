@@ -19,6 +19,7 @@ const RecoverPassword = lazy(() => import('./auth/RecoverPassword'));
 const ResetPassword = lazy(() => import('./auth/ResetPassword'));
 
 const SchoolList = lazy(() => import('./modules/admin/schools/SchoolList'));
+const ClassList = lazy(() => import('./modules/admin/classes/ClassList'));
 
 function BodyClassManager() {
   const location = useLocation();
@@ -98,6 +99,16 @@ function App() {
                   <RoleProtectedRoute allowedRoles={['admin']}>
                     <PermissionRoute permission="school:read">
                       <SchoolList />
+                    </PermissionRoute>
+                  </RoleProtectedRoute>
+                }
+              />
+              <Route
+                path="/admins/classes"
+                element={
+                  <RoleProtectedRoute allowedRoles={['admin']}>
+                    <PermissionRoute permission="class:read">
+                      <ClassList />
                     </PermissionRoute>
                   </RoleProtectedRoute>
                 }

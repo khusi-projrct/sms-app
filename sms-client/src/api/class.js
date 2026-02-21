@@ -1,7 +1,20 @@
-import client from './client';
+import client, { authHeaders } from "./client";
 
-export const getClasses = () => client.get('/classes');
-export const getClassById = (classId) => client.get(`/classes/${classId}`); 
-export const createClass = (classData) => client.post('/classes', classData);
-export const updateClass = (classId, classData) => client.put(`/classes/${classId}`, classData);
-export const deleteClass = (classId) => client.delete(`/classes/${classId}`);
+export const getClasses = (params, token) => {
+  return client.get("/classes", {
+    params,
+    ...authHeaders(token),
+  });
+};
+
+export const createClass = (data, token) => {
+  return client.post("/classes", data, authHeaders(token));
+};
+
+export const updateClass = (id, data, token) => {
+  return client.put(`/classes/${id}`, data, authHeaders(token));
+};
+
+export const deleteClass = (id, token) => {
+  return client.delete(`/classes/${id}`, authHeaders(token));
+};
